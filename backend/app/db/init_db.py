@@ -24,7 +24,7 @@ def create_initial_data(db: Session) -> None:
         admin_user = User(
             username="admin",
             email="admin@example.com",
-            hashed_password=get_password_hash("admin123"),
+            hashed_password=get_password_hash("111222"),
             full_name="系统管理员",
             role="admin",
             is_active=True,
@@ -101,4 +101,4 @@ if __name__ == "__main__":
         create_initial_data(db)
         logger.info("初始数据创建完成")
     finally:
-        db.close() 
+        db.close()

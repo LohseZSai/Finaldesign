@@ -1,5 +1,5 @@
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 # 令牌模型
 class Token(BaseModel):
@@ -14,4 +14,11 @@ class TokenData(BaseModel):
 class Login(BaseModel):
     username: str
     password: str
-    remember_me: Optional[bool] = False 
+    remember_me: Optional[bool] = False
+
+# 注册请求模型
+class Register(BaseModel):
+    username: str
+    email: EmailStr
+    password: str
+    full_name: Optional[str] = None

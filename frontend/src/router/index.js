@@ -3,6 +3,7 @@ import { useAuthStore } from '@/store/auth'
 
 // 公共页面
 const Home = () => import('../views/public/Home.vue')
+const SignUp = () => import('../views/public/SignUp.vue')
 const About = () => import('../views/public/About.vue')
 const News = () => import('../views/public/News.vue')
 const Products = () => import('../views/public/Products.vue')
@@ -45,6 +46,12 @@ const routes = [
     path: '/login',
     name: 'Login',
     component: Login,
+    meta: { requiresAuth: false }
+  },
+  {
+    path: '/sign-up',
+    name: 'SignUp',
+    component: SignUp,
     meta: { requiresAuth: false }
   },
   
@@ -96,4 +103,4 @@ router.beforeEach((to, from, next) => {
   }
 })
 
-export default router 
+export default router

@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import axios from 'axios'
+import api from '@/utils/api'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -20,11 +20,19 @@ export const useAuthStore = defineStore('auth', {
   actions: {
     async login(credentials) {
       try {
-        // 实际项目中，这里应该调用后端API进行认证
-        const response = await axios.post('/api/auth/login', credentials)
+        // 使用JSON格式的登录端点
+        const response = await api.post('/auth/login/json', {
+          username: credentials.username,
+          password: credentials.password,
+          remember_me: credentials.remember || false
+        })
         
-        if (response.data.token) {
-          this.setAuthData(response.data)
+        if (response.data.access_token) {
+          this.setAuthData({
+            token: response.data.access_token,
+            role: 'breeder', // 默认角色，将由后续请求更新
+            user: { username: credentials.username }
+          })
           return { success: true }
         }
         
@@ -33,7 +41,7 @@ export const useAuthStore = defineStore('auth', {
         console.error('登录错误:', error)
         return { 
           success: false, 
-          message: error.response?.data?.message || '登录时发生错误，请稍后再试' 
+          message: error.response?.data?.detail || '登录时发生错误，请稍后再试' 
         }
       }
     },
@@ -42,7 +50,7 @@ export const useAuthStore = defineStore('auth', {
       try {
         if (!this.token) return
         
-        const response = await axios.get('/api/auth/permissions', {
+        const response = await api.get('/auth/permissions', {
           headers: { Authorization: `Bearer ${this.token}` }
         })
         
@@ -62,7 +70,7 @@ export const useAuthStore = defineStore('auth', {
       localStorage.setItem('role', data.role)
       
       // 设置axios默认头部
-      axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`
+      api.defaults.headers.common['Authorization'] = `Bearer ${data.token}`
       
       // 获取用户权限
       this.fetchUserPermissions()
@@ -79,7 +87,7 @@ export const useAuthStore = defineStore('auth', {
       localStorage.removeItem('role')
       
       // 清除axios默认头部
-      delete axios.defaults.headers.common['Authorization']
+      delete api.defaults.headers.common['Authorization']
     }
   }
-}) 
+})

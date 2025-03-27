@@ -1,31 +1,29 @@
 @echo off
-chcp 65001
-echo 启动智能养猪场管理系统后端服务...
+chcp 65001 >nul
+echo 启动后端服务...
 
-REM 检查虚拟环境是否存在
-if not exist venv (
-    echo 创建虚拟环境...
-    python -m venv venv
+REM 检查Python环境
+python --version > nul 2>&1
+if %errorlevel% neq 0 (
+    echo 错误: 未找到Python环境，请安装Python
+    pause
+    exit /b 1
 )
 
-REM 激活虚拟环境
-call venv\Scripts\activate
-
-REM 安装依赖
-echo 安装依赖...
+REM 检查并安装依赖
+echo 检查并安装依赖...
 pip install -r requirements.txt
 
-REM 初始化数据库
-echo 初始化数据库...
-python -m app.db.init_db
-
-REM 生成测试数据
-echo 生成测试数据...
-python -m app.scripts.generate_test_data
+REM 检查端口8000
+echo 检查端口8000...
+netstat -ano | findstr ":8000" > nul
+if %errorlevel% equ 0 (
+    echo 警告: 端口8000已被占用，尝试释放端口...
+    for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":8000"') do (
+        taskkill /F /PID %%a
+    )
+)
 
 REM 启动服务
-echo 启动服务...
+echo 正在启动FastAPI服务...
 python run.py
-
-REM 停用虚拟环境
-call venv\Scripts\deactivate 

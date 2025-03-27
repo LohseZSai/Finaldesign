@@ -10,33 +10,33 @@
         </div>
         
         <el-form
-          ref="loginForm"
-          :model="loginForm"
+          ref="loginFormRef"
+          :model="formData"
           :rules="loginRules"
           label-position="top"
           @submit.prevent="handleLogin"
         >
           <el-form-item label="用户名" prop="username">
             <el-input
-              v-model="loginForm.username"
+              v-model="formData.username"
               placeholder="请输入用户名"
-              prefix-icon="User"
+              :prefix-icon="User"
             />
           </el-form-item>
           
           <el-form-item label="密码" prop="password">
             <el-input
-              v-model="loginForm.password"
+              v-model="formData.password"
               type="password"
               placeholder="请输入密码"
-              prefix-icon="Lock"
+              :prefix-icon="Lock"
               show-password
             />
           </el-form-item>
           
           <div class="remember-forgot">
-            <el-checkbox v-model="loginForm.remember">记住我</el-checkbox>
-            <el-button type="text" @click="forgotPassword">忘记密码?</el-button>
+            <el-checkbox v-model="formData.remember">记住我</el-checkbox>
+            <el-button link @click="forgotPassword">忘记密码?</el-button>
           </div>
           
           <el-form-item>
@@ -51,23 +51,11 @@
           </el-form-item>
         </el-form>
         
-        <div class="divider">
-          <span>或</span>
-        </div>
-        
-        <div class="oauth-login">
-          <el-button
-            type="default"
-            class="github-button"
-            @click="handleGithubLogin"
-            :loading="githubLoading"
-          >
-            <i class="el-icon-platform-eleme"></i>
-            使用GitHub账号登录
-          </el-button>
-        </div>
-        
         <div class="login-footer">
+          <p>
+            还没有账号？
+            <el-button link @click="goToSignUp">立即注册</el-button>
+          </p>
           <p>遇到问题? 请联系 <a href="mailto:support@hongtai-bio.com">技术支持</a></p>
         </div>
       </div>
@@ -79,8 +67,8 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { User, Lock } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/store/auth'
-import { useAuth0 } from '@auth0/auth0-vue'
 import Navbar from '@/components/layout/Navbar.vue'
 
 export default {
@@ -92,8 +80,7 @@ export default {
   setup() {
     const router = useRouter()
     const authStore = useAuthStore()
-    const auth0 = useAuth0()
-    const loginForm = ref(null)
+    const loginFormRef = ref(null)
     
     const formData = reactive({
       username: '',
@@ -102,7 +89,6 @@ export default {
     })
     
     const loading = ref(false)
-    const githubLoading = ref(false)
     
     const loginRules = {
       username: [
@@ -116,13 +102,12 @@ export default {
     }
     
     const handleLogin = async () => {
-      if (!loginForm.value) return
+      if (!loginFormRef.value) return
       
-      await loginForm.value.validate(async (valid) => {
+      await loginFormRef.value.validate(async (valid) => {
         if (valid) {
           try {
             loading.value = true
-            
             const result = await authStore.login({
               username: formData.username,
               password: formData.password,
@@ -133,7 +118,7 @@ export default {
               ElMessage.success('登录成功')
               router.push('/admin')
             } else {
-              ElMessage.error(result.message)
+              ElMessage.error(result.message || '登录失败，请检查用户名和密码')
             }
           } catch (error) {
             console.error('登录错误:', error)
@@ -145,34 +130,24 @@ export default {
       })
     }
     
-    const handleGithubLogin = async () => {
-      try {
-        githubLoading.value = true
-        await auth0.loginWithRedirect({
-          authorizationParams: {
-            connection: 'github'
-          }
-        })
-      } catch (error) {
-        console.error('GitHub登录错误:', error)
-        ElMessage.error('GitHub登录失败，请稍后再试')
-        githubLoading.value = false
-      }
-    }
-    
     const forgotPassword = () => {
       ElMessage.info('请联系系统管理员重置密码')
     }
     
+    const goToSignUp = () => {
+      router.push('/sign-up')
+    }
+    
     return {
-      loginForm,
-      loginForm: formData,
+      loginFormRef,
+      formData,
       loginRules,
       loading,
-      githubLoading,
       handleLogin,
-      handleGithubLogin,
-      forgotPassword
+      forgotPassword,
+      goToSignUp,
+      User,
+      Lock
     }
   }
 }
@@ -229,37 +204,6 @@ export default {
   font-size: 1.1rem;
 }
 
-.divider {
-  display: flex;
-  align-items: center;
-  margin: 20px 0;
-}
-
-.divider::before,
-.divider::after {
-  content: '';
-  flex: 1;
-  border-bottom: 1px solid #eee;
-}
-
-.divider span {
-  padding: 0 10px;
-  color: #999;
-  font-size: 0.9rem;
-}
-
-.oauth-login {
-  margin-bottom: 20px;
-}
-
-.github-button {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-}
-
 .login-footer {
   text-align: center;
   margin-top: 20px;
@@ -271,4 +215,14 @@ export default {
   color: #409EFF;
   text-decoration: none;
 }
-</style> 
+
+@media (max-width: 768px) {
+  .login-card {
+    padding: 20px;
+  }
+  
+  .login-header h2 {
+    font-size: 1.5rem;
+  }
+}
+</style>
