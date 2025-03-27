@@ -1,0 +1,9 @@
+/dist
+/node_modules
+/public
+*.svg
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.ico 
